@@ -1,0 +1,29 @@
+{
+  "name": "redteam",
+  "version": "0.2.0",
+  "description": "Setup red-team semi-autonome : skills de pipeline, slash commands d'engagement, hook PreToolUse de gating par scope avec audit trail JSONL hash-chaîné.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scope_gate_wrapper.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/post_tool_log_wrapper.sh"
+          }
+        ]
+      }
+    ]
+  }
+}
