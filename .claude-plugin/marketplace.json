@@ -12,7 +12,7 @@
       "name": "redteam",
       "source": "./",
       "description": "Setup red-team semi-autonome : skills de pipeline, slash commands d'engagement, hook PreToolUse de gating par scope avec audit trail JSONL hash-chaîné.",
-      "version": "0.3.0",
+      "version": "0.4.0",
       "homepage": "https://github.com/billbob-space/redteam-plugin",
       "repository": "https://github.com/billbob-space/redteam-plugin",
       "category": "security",

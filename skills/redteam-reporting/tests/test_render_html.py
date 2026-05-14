@@ -1,5 +1,6 @@
 """Tests pour render_html.py — rendu Markdown → HTML statique des rapports."""
 from __future__ import annotations
+import re
 import sys
 from pathlib import Path
 
@@ -139,6 +140,121 @@ def test_no_engagements_dir_exits_clean(tmp_path):
     with pytest.raises(SystemExit) as exc:
         render(client_filter=None, root=tmp_path, out_dir=out)
     assert exc.value.code != 0
+
+
+def test_severity_badges_injected(tmp_path):
+    body = """---
+title: Audit X
+date: 2026-05-14
+target: x
+perimeter: external
+risk_global: critical
+counts:
+  critical: 1
+  high: 1
+  medium: 0
+  low: 0
+  info: 0
+---
+
+# Audit X
+
+### [CRITICAL] Service exposé
+
+Texte du finding.
+
+### [HIGH] Cert expirant
+
+Texte.
+"""
+    _make_report(tmp_path, "acme-corp", "2026-05-14", body=body)
+    render(client_filter=None, root=tmp_path, out_dir=tmp_path / "_html")
+    html = (tmp_path / "_html" / "acme-corp" / "2026-05-14.html").read_text()
+    assert '<span class="sev sev-critical">Critical</span>' in html
+    assert '<span class="sev sev-high">High</span>' in html
+
+
+def test_summary_cards_rendered_from_frontmatter(tmp_path):
+    body = """---
+title: Audit X
+date: 2026-05-14
+target: x
+perimeter: external
+risk_global: high
+counts:
+  critical: 0
+  high: 3
+  medium: 1
+  low: 2
+  info: 0
+---
+
+# Audit X
+"""
+    _make_report(tmp_path, "acme-corp", "2026-05-14", body=body)
+    render(client_filter=None, root=tmp_path, out_dir=tmp_path / "_html")
+    html = (tmp_path / "_html" / "acme-corp" / "2026-05-14.html").read_text()
+    assert 'class="summary-cards"' in html
+    # Vérifie qu'on a bien 5 cards (toutes les sévérités), pas juste les non-zéro
+    assert html.count('class="card sev-') == 5
+    # Vérifie que les valeurs apparaissent au bon endroit
+    assert '<div class="count">3</div>' in html  # high
+    assert '<div class="count">2</div>' in html  # low
+
+
+def test_findings_toc_lists_severity_headings(tmp_path):
+    body = """---
+title: Audit X
+date: 2026-05-14
+target: x
+perimeter: external
+risk_global: critical
+counts:
+  critical: 1
+  high: 1
+---
+
+# Audit X
+
+### [CRITICAL] Finding A
+
+Texte.
+
+### [HIGH] Finding B
+
+Texte.
+"""
+    _make_report(tmp_path, "acme-corp", "2026-05-14", body=body)
+    render(client_filter=None, root=tmp_path, out_dir=tmp_path / "_html")
+    html = (tmp_path / "_html" / "acme-corp" / "2026-05-14.html").read_text()
+    assert 'class="findings-toc"' in html
+    assert "Finding A" in html
+    assert "Finding B" in html
+    # La TOC a au moins un lien cliquable href="#..." vers un finding
+    assert re.search(r'<li><a href="#[^"]+">', html), "TOC sans lien <li><a href=\"#...\">"
+
+
+def test_global_dashboard_shows_severity_badges(tmp_path):
+    body = """---
+title: Audit X
+date: 2026-05-14
+target: x
+perimeter: external
+risk_global: high
+counts:
+  high: 2
+  medium: 1
+---
+
+# Audit X
+"""
+    _make_report(tmp_path, "acme-corp", "2026-05-14", body=body)
+    render(client_filter=None, root=tmp_path, out_dir=tmp_path / "_html")
+    idx = (tmp_path / "_html" / "index.html").read_text()
+    # Badge "High 2" doit apparaître dans la card du client
+    assert 'class="sev sev-high"' in idx
+    assert "High 2" in idx
+    assert 'Risque' in idx  # le badge "Risque <niveau>" doit être présent
 
 
 def test_no_absolute_paths_in_output(tmp_path):
