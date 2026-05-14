@@ -17,7 +17,7 @@ Agrège tous les findings du client `$1` en un rapport daté.
 
 4. Lancer le script d'agrégation :
    ```bash
-   .tools/venv/bin/python .claude/plugins/redteam/skills/redteam-reporting/aggregate_findings.py \
+   .tools/venv/bin/python ${CLAUDE_PLUGIN_ROOT}/skills/redteam-reporting/aggregate_findings.py \
      --client $1 --root . --perimeter <choix>
    ```
 
@@ -30,7 +30,7 @@ Agrège tous les findings du client `$1` en un rapport daté.
 
 7. Demander à l'utilisateur s'il veut un rendu HTML statique (pour consultation via navigateur ou exposition sur un webserver local) :
    ```bash
-   .tools/venv/bin/python .claude/plugins/redteam/skills/redteam-reporting/render_html.py \
+   .tools/venv/bin/python ${CLAUDE_PLUGIN_ROOT}/skills/redteam-reporting/render_html.py \
      --root . --client $1
    ```
    Output : `engagements/_html/` (gitignored automatiquement par `engagements/*/`). Liens

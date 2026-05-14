@@ -54,7 +54,7 @@ Host: app.acme-corp.com
 ## Génération du rapport daté
 
 ```bash
-.tools/venv/bin/python .claude/plugins/redteam/skills/redteam-reporting/aggregate_findings.py \
+.tools/venv/bin/python ${CLAUDE_PLUGIN_ROOT}/skills/redteam-reporting/aggregate_findings.py \
   --client <client> --root . --perimeter external
 ```
 
@@ -68,7 +68,7 @@ Pour un PDF : `pandoc engagements/<client>/rapports/<date>.md -o <date>.pdf`.
 
 Pour un rendu HTML statique (dashboard navigable + pages par rapport) :
 ```bash
-.tools/venv/bin/python .claude/plugins/redteam/skills/redteam-reporting/render_html.py \
+.tools/venv/bin/python ${CLAUDE_PLUGIN_ROOT}/skills/redteam-reporting/render_html.py \
   --root . --client <client>
 ```
 Output sous `engagements/_html/` (gitignored). Aucun lien absolu, aucune URL externe.
