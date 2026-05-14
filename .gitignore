@@ -2,3 +2,8 @@ __pycache__/
 *.pyc
 *.pyo
 .pytest_cache/
+
+# Garde-fou : ne jamais committer de données d'engagement client
+engagements/
+audit.jsonl
+*.local.yaml

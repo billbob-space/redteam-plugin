@@ -121,22 +121,22 @@ def test_build_global_index_multiple_engagements(tmp_path):
     engs = root / "engagements"
     engs.mkdir()
 
-    for name in ("acme-corp", "billbob", "empty-eng"):
+    for name in ("acme-corp", "customer-2", "empty-eng"):
         (engs / name).mkdir()
         (engs / name / "scope.yaml").write_text(f"client: {name}\n")
 
     # 2 engagements avec rapports
     (engs / "acme-corp" / "rapports").mkdir()
     (engs / "acme-corp" / "rapports" / "2026-05-15.md").write_text(VALID_REPORT)
-    (engs / "billbob" / "rapports").mkdir()
-    (engs / "billbob" / "rapports" / "2026-04-22.md").write_text(
-        VALID_REPORT.replace("acme-corp", "billbob").replace("2026-05-15", "2026-04-22")
+    (engs / "customer-2" / "rapports").mkdir()
+    (engs / "customer-2" / "rapports" / "2026-04-22.md").write_text(
+        VALID_REPORT.replace("acme-corp", "customer-2").replace("2026-05-15", "2026-04-22")
     )
     # empty-eng : pas de rapports → exclu
 
     out = _build_global_index(engs)
     assert "acme-corp" in out
-    assert "billbob" in out
+    assert "customer-2" in out
     assert "empty-eng" not in out
 
 
