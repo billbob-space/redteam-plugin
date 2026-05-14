@@ -66,6 +66,14 @@ Le script régénère également :
 
 Pour un PDF : `pandoc engagements/<client>/rapports/<date>.md -o <date>.pdf`.
 
+Pour un rendu HTML statique (dashboard navigable + pages par rapport) :
+```bash
+.tools/venv/bin/python .claude/plugins/redteam/skills/redteam-reporting/render_html.py \
+  --root . --client <client>
+```
+Output sous `engagements/_html/` (gitignored). Aucun lien absolu, aucune URL externe.
+À exposer via le webserver du repo consommateur (nginx, Traefik, `python -m http.server`...).
+
 ## Sections narratives à compléter manuellement
 
 Le template laisse 4 sections `_(à compléter)_` :
