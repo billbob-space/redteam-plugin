@@ -1,0 +1,78 @@
+---
+target: {{ target }}
+date: {{ date }}
+perimeter: {{ perimeter }}
+risk_global: {{ risk_global }}
+counts:
+  critical: {{ count_critical }}
+  high: {{ count_high }}
+  medium: {{ count_medium }}
+  low: {{ count_low }}
+  info: {{ count_info }}
+ip: {{ ip }}
+auditor: {{ auditor }}
+tool: {{ tool }}
+playbook_version: {{ playbook_version }}
+---
+
+# Rapport d'audit — {{ target }}
+
+**Date** : {{ date }}
+**Périmètre** : {{ perimeter }}
+**Risque global** : {{ risk_global }}
+
+## Résumé chiffré
+
+| Sévérité | Nombre |
+|----------|--------|
+| Critical | {{ count_critical }} |
+| High     | {{ count_high }} |
+| Medium   | {{ count_medium }} |
+| Low      | {{ count_low }} |
+| Info     | {{ count_info }} |
+
+**Surface explorée** : {{ subdomain_count }} sous-domaines, scope = `{{ in_scope_summary }}`.
+
+## Résumé exécutif
+
+_(à compléter manuellement par l'auditeur — 3-5 phrases sur la posture sécurité globale et les enjeux business des findings critiques)_
+
+## Findings
+
+{{ findings_block }}
+
+## Chaînes d'attaque confirmées
+
+_(à compléter — décrire les chaînes d'exploitation réellement validées, en référence aux findings ci-dessus. Format suggéré : numéroter les chaînes, lister les étapes, indiquer les findings impliqués.)_
+
+## Ce qui a résisté
+
+_(à compléter — protections en place qui ont bloqué des tentatives d'exploitation. Crédibilise le rapport et oriente l'effort de remédiation sur le résiduel.)_
+
+## Risque résiduel
+
+_(à compléter — ce qui reste exploitable après remédiation des findings listés, ou ce qui sort du périmètre mais mérite mention.)_
+
+## Actions recommandées
+
+{{ actions_block }}
+
+## Annexes
+
+### Périmètre
+
+**In-scope** :
+{{ in_scope_block }}
+
+**Out-of-scope** :
+{{ out_of_scope_block }}
+
+### Outils & version
+
+- Playbook redteam plugin : {{ playbook_version }}
+- LLM : {{ tool }}
+- Auditeur : {{ auditor }}
+
+### Audit trail
+
+Toutes les actions ont été journalisées dans `audit.jsonl` (hash-chaîné SHA256). Voir le commit Git du rapport pour le hash courant.

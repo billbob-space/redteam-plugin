@@ -155,7 +155,11 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--client", required=True)
     ap.add_argument("--root", default=".")
-    ap.add_argument("--template", default=".tools/share/report-templates/default.md.tmpl")
+    ap.add_argument(
+        "--template",
+        default=str(Path(__file__).resolve().parent / "templates" / "default.md.tmpl"),
+        help="Chemin du template Markdown. Par défaut: bundled du plugin.",
+    )
     ap.add_argument("--perimeter", default="external", choices=sorted(PERIMETER_VALUES))
     ap.add_argument("--date", default=None, help="ISO date, default = today UTC")
     args = ap.parse_args()

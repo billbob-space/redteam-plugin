@@ -160,17 +160,19 @@ def test_build_actions_block_numbered_1_to_n():
 # --- main() end-to-end ---
 
 def _write_template(root: Path) -> Path:
-    """Copie le template default.md.tmpl du projet dans la racine tmp.
+    """Copie le template bundled du plugin dans la racine tmp.
 
-    Localise le projet via __file__ pour ne pas hardcoder un chemin absolu :
-    tests/ → redteam-reporting/ → skills/ → redteam/ → plugins/ → .claude/ → project_root.
+    Le template canonique vit dans `skills/redteam-reporting/templates/`. Pour les
+    tests, on le copie sous `.tools/share/report-templates/` du root tmp afin que
+    le résolveur `--template <relpath>` de aggregate_findings.py le trouve.
     """
-    project_root = Path(__file__).resolve().parents[6]
-    src_tpl = project_root / ".tools" / "share" / "report-templates" / "default.md.tmpl"
+    bundled = (
+        Path(__file__).resolve().parent.parent / "templates" / "default.md.tmpl"
+    )
     tpl_dir = root / ".tools" / "share" / "report-templates"
     tpl_dir.mkdir(parents=True)
     tpl = tpl_dir / "default.md.tmpl"
-    tpl.write_text(src_tpl.read_text())
+    tpl.write_text(bundled.read_text())
     return tpl
 
 
