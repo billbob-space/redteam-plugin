@@ -45,6 +45,33 @@ def test_out_of_scope_denied(engagement_dir):
     assert "scope" in d.reason.lower()
 
 
+def test_naabu_out_of_scope_denied(engagement_dir):
+    d = decide(
+        "naabu -host evil-not-in-scope.example -p 1-65535",
+        cwd=str(engagement_dir),
+        env={},
+    )
+    assert d.permission == "deny"
+
+
+def test_naabu_in_scope_allowed(engagement_dir):
+    d = decide(
+        "naabu -host scan.acme-corp.com -p 80,443",
+        cwd=str(engagement_dir),
+        env={},
+    )
+    assert d.permission == "allow"
+
+
+def test_rpcinfo_out_of_scope_denied(engagement_dir):
+    d = decide(
+        "rpcinfo -p portmap.evil.example",
+        cwd=str(engagement_dir),
+        env={},
+    )
+    assert d.permission == "deny"
+
+
 def test_intrusive_asks(engagement_dir):
     d = decide(
         "sqlmap -u https://app.acme-corp.com/contact --batch",

@@ -9,9 +9,10 @@ KNOWN_TOOLS = {
     "subfinder", "assetfinder", "dnsx", "httpx", "tlsx", "katana",
     "gau", "waybackurls", "nuclei", "ffuf", "feroxbuster", "dalfox",
     "sqlmap", "commix", "arjun",
+    "naabu", "rpcinfo",
 }
 
-TARGET_FLAGS = {"-u", "-target", "--target", "-d", "-domain", "--url", "-h", "--host"}
+TARGET_FLAGS = {"-u", "-target", "--target", "-d", "-domain", "--url", "-h", "-host", "--host"}
 TARGET_FILE_FLAGS = {"-l", "-list", "--list", "-i", "--input"}
 # Flags qui consomment la valeur suivante mais ne désignent PAS de cible
 # (wordlists, threads, output, headers, etc.).
