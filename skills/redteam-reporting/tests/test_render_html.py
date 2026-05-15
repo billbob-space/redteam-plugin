@@ -257,6 +257,119 @@ counts:
     assert 'Risque' in idx  # le badge "Risque <niveau>" doit être présent
 
 
+REPORT_WITH_REMEDIATION = """---
+title: Re-vérif acme-corp
+date: 2026-05-15
+target: acme-corp.com
+perimeter: re-verif
+risk_global: critical
+counts:
+  critical: 1
+  high: 1
+remediation:
+  - id: F-01
+    title: 7 certs TLS expirants
+    anchor: high-finding-01-certs-fixed
+    status: fixed
+    before: { severity: high, cvss: "n/a" }
+    after:  { severity: info, cvss: "364 j" }
+  - id: F-08
+    title: DNS open resolver
+    status: open
+    before: { severity: high, cvss: 7.5 }
+    after:  { severity: high, cvss: "7.5 inchangé" }
+  - id: F-11
+    title: Squid open proxy
+    status: escalated
+    before: { severity: high, cvss: 7.4 }
+    after:  { severity: critical, cvss: "9.1 ↑" }
+---
+
+# Re-vérif acme-corp
+"""
+
+
+def test_remediation_tiles_injected_when_frontmatter_present(tmp_path):
+    _make_report(tmp_path, "acme-corp", "2026-05-15", body=REPORT_WITH_REMEDIATION)
+    render(client_filter=None, root=tmp_path, out_dir=tmp_path / "_html")
+    html = (tmp_path / "_html" / "acme-corp" / "2026-05-15.html").read_text()
+    assert 'class="remediation-tiles"' in html
+    # 3 tiles : ok (fixed), bad (open), warn (escalated)
+    assert 'class="tile ok"' in html
+    assert 'class="tile bad"' in html
+    assert 'class="tile warn"' in html
+    # Compteurs corrects : 1 fixed, 1 open, 1 escalated
+    assert html.count('<p class="value">1</p>') == 3
+
+
+def test_remediation_strip_renders_one_row_per_finding(tmp_path):
+    _make_report(tmp_path, "acme-corp", "2026-05-15", body=REPORT_WITH_REMEDIATION)
+    render(client_filter=None, root=tmp_path, out_dir=tmp_path / "_html")
+    html = (tmp_path / "_html" / "acme-corp" / "2026-05-15.html").read_text()
+    assert html.count('class="finding-row"') == 3
+    # Préserve l'ordre auteur (F-01 en premier)
+    pos_f01 = html.find("F-01")
+    pos_f08 = html.find("F-08")
+    pos_f11 = html.find("F-11")
+    assert 0 < pos_f01 < pos_f08 < pos_f11
+    # Status pills présentes
+    assert 'class="status-pill fixed"' in html
+    assert 'class="status-pill open"' in html
+    assert 'class="status-pill escalated"' in html
+    # Anchor href généré si fourni dans le frontmatter
+    assert 'href="#high-finding-01-certs-fixed"' in html
+    # Pas de href si anchor absent
+    assert '<a href="#"' not in html
+
+
+def test_remediation_strip_renders_before_after_severities(tmp_path):
+    _make_report(tmp_path, "acme-corp", "2026-05-15", body=REPORT_WITH_REMEDIATION)
+    render(client_filter=None, root=tmp_path, out_dir=tmp_path / "_html")
+    html = (tmp_path / "_html" / "acme-corp" / "2026-05-15.html").read_text()
+    # Squid : high → critical (escalade)
+    # On cherche le pattern dans la zone autour de F-11
+    f11_start = html.find("F-11")
+    assert f11_start > 0
+    f11_zone = html[f11_start:f11_start + 1200]
+    assert 'sev sev-high' in f11_zone     # before
+    assert 'sev sev-critical' in f11_zone  # after
+
+
+def test_remediation_absent_no_strip_no_tiles(tmp_path):
+    """Backwards compat : si pas de `remediation:` dans le frontmatter,
+    le rendu ne change pas."""
+    _make_report(tmp_path, "acme-corp", "2026-05-14")  # frontmatter sans remediation:
+    render(client_filter=None, root=tmp_path, out_dir=tmp_path / "_html")
+    html = (tmp_path / "_html" / "acme-corp" / "2026-05-14.html").read_text()
+    assert 'class="remediation-tiles"' not in html
+    assert 'class="finding-strip"' not in html
+    assert 'class="finding-row"' not in html
+
+
+def test_remediation_unknown_status_ignored_in_tile_count(tmp_path):
+    """Un status inconnu (typo) ne crashe pas et n'incrémente aucun compteur."""
+    body = """---
+title: x
+date: 2026-05-15
+remediation:
+  - id: F-01
+    title: t
+    status: wontfix
+    before: { severity: high, cvss: 1 }
+    after:  { severity: high, cvss: 1 }
+---
+# x
+"""
+    _make_report(tmp_path, "acme-corp", "2026-05-15", body=body)
+    render(client_filter=None, root=tmp_path, out_dir=tmp_path / "_html")
+    html = (tmp_path / "_html" / "acme-corp" / "2026-05-15.html").read_text()
+    # Tiles présentes mais tous à 0
+    assert 'class="remediation-tiles"' in html
+    assert html.count('<p class="value">0</p>') == 3
+    # Ligne quand même rendue
+    assert html.count('class="finding-row"') == 1
+
+
 def test_css_includes_remediation_components(tmp_path):
     """Le stylesheet global doit exposer les classes des composants
     de remédiation (remediation-tiles, finding-strip, status-pill) pour

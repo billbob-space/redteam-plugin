@@ -365,6 +365,108 @@ def _summary_cards_html(counts: dict) -> str:
     return '<div class="summary-cards">\n' + "\n".join(cards) + '\n</div>'
 
 
+REMEDIATION_STATUSES = ("fixed", "open", "escalated")
+REMEDIATION_TILE_SPEC = [
+    # (status, css_class, icon, label_fr)
+    ("fixed",     "ok",   "✓", "Corrigés"),
+    ("open",      "bad",  "!", "Toujours ouverts"),
+    ("escalated", "warn", "↑", "Escaladés"),
+]
+
+
+def _remediation_html(remediation: list | None) -> str:
+    """Construit `remediation-tiles` (3-up) + `finding-strip` (n rows) à partir
+    de la clé `remediation:` du frontmatter. Retourne `""` si absente/vide.
+
+    Schéma attendu (liste plate, ordre auteur préservé) :
+        remediation:
+          - id: F-01
+            title: 7 certs TLS expirants
+            anchor: high-finding-01-...   # optionnel
+            status: fixed                  # fixed | open | escalated
+            before: { severity: high, cvss: "n/a" }
+            after:  { severity: info, cvss: "364 j" }
+    """
+    if not remediation or not isinstance(remediation, list):
+        return ""
+
+    # Tiles — comptage par status
+    counts = {s: 0 for s in REMEDIATION_STATUSES}
+    total = 0
+    for item in remediation:
+        if not isinstance(item, dict):
+            continue
+        total += 1
+        status = (item.get("status") or "").lower()
+        if status in counts:
+            counts[status] += 1
+
+    tiles = []
+    for status, cls, icon, label in REMEDIATION_TILE_SPEC:
+        n = counts[status]
+        sub = f"{n} / {total}" if total else "—"
+        tiles.append(
+            f'<div class="tile {cls}">'
+            f'<div class="icon-tile">{icon}</div>'
+            f'<div class="meta">'
+            f'<p class="label">{_html.escape(label)}</p>'
+            f'<p class="value">{n}</p>'
+            f'<p class="sub">{_html.escape(sub)}</p>'
+            f'</div></div>'
+        )
+    tiles_html = '<div class="remediation-tiles">\n' + "\n".join(tiles) + '\n</div>'
+
+    # Strip — une ligne par finding, ordre YAML préservé
+    rows = []
+    for item in remediation:
+        if not isinstance(item, dict):
+            continue
+        fid = _html.escape(str(item.get("id", "")))
+        title = _html.escape(str(item.get("title", "")))
+        anchor = item.get("anchor")
+        title_html = (
+            f'<a href="#{_html.escape(str(anchor))}">{title}</a>'
+            if anchor else title
+        )
+        before = item.get("before") or {}
+        after = item.get("after") or {}
+        b_sev = str(before.get("severity") or "info").lower()
+        a_sev = str(after.get("severity") or "info").lower()
+        if b_sev not in SEVERITY_ORDER:
+            b_sev = "info"
+        if a_sev not in SEVERITY_ORDER:
+            a_sev = "info"
+        b_cvss = _html.escape(str(before.get("cvss", "")))
+        a_cvss = _html.escape(str(after.get("cvss", "")))
+
+        status = (item.get("status") or "").lower()
+        status_pill_class = status if status in REMEDIATION_STATUSES else ""
+        status_label_map = {
+            "fixed": "Fixed", "open": "Open", "escalated": "Escaladé",
+        }
+        status_label = status_label_map.get(status, status.capitalize() or "—")
+
+        rows.append(
+            f'<div class="finding-row">'
+            f'<div class="fid">{fid}</div>'
+            f'<div class="ftitle">{title_html}</div>'
+            f'<div class="sev-cell">'
+            f'<span class="sev sev-{b_sev}">{SEVERITY_LABEL[b_sev]}</span>'
+            f'<span class="cvss">{b_cvss}</span>'
+            f'</div>'
+            f'<div class="arrow">→</div>'
+            f'<div class="sev-cell">'
+            f'<span class="sev sev-{a_sev}">{SEVERITY_LABEL[a_sev]}</span>'
+            f'<span class="cvss">{a_cvss}</span>'
+            f'</div>'
+            f'<div><span class="status-pill {status_pill_class}">{_html.escape(status_label)}</span></div>'
+            f'</div>'
+        )
+    strip_html = '<div class="finding-strip">\n' + "\n".join(rows) + '\n</div>'
+
+    return tiles_html + "\n" + strip_html
+
+
 def _extract_findings_toc(html_body: str) -> str:
     """Construit une TOC des findings à partir des `<h3 ...>[SEV]...`."""
     # On re-parse le HTML déjà transformé (les badges ont été injectés).
@@ -398,6 +500,7 @@ def _render_report(md_path: Path, out_path: Path, css_path: str, nav: str) -> No
 
     fm = _parse_frontmatter(md_text)
     counts = fm.get("counts") or {}
+    remediation = fm.get("remediation")
 
     # Retire le frontmatter YAML pour ne pas le rendre tel quel.
     md_clean = re.sub(r"^---\n.*?\n---\n", "", md_text, count=1, flags=re.DOTALL)
@@ -414,10 +517,14 @@ def _render_report(md_path: Path, out_path: Path, css_path: str, nav: str) -> No
     # Cards récap
     cards_html = _summary_cards_html(counts)
 
-    # Insère cards + TOC juste après le premier <h1>
+    # Remediation tiles + strip (re-vérif)
+    remediation_html = _remediation_html(remediation)
+
+    # Insère cards → remediation → TOC juste après le premier <h1>
+    injected = "\n".join(b for b in (cards_html, remediation_html, toc_html) if b)
     final_body = re.sub(
         r"(</h1>)",
-        r"\1\n" + cards_html + ("\n" + toc_html if toc_html else ""),
+        r"\1\n" + injected,
         body_with_badges,
         count=1,
     )
