@@ -257,6 +257,30 @@ counts:
     assert 'Risque' in idx  # le badge "Risque <niveau>" doit être présent
 
 
+def test_css_includes_remediation_components(tmp_path):
+    """Le stylesheet global doit exposer les classes des composants
+    de remédiation (remediation-tiles, finding-strip, status-pill) pour
+    que les rapports de re-vérification n'aient pas besoin de `<style>`
+    embarqué."""
+    _make_report(tmp_path, "acme-corp", "2026-05-14")
+    out = tmp_path / "_html"
+    render(client_filter=None, root=tmp_path, out_dir=out)
+    css = (out / "style.css").read_text()
+    for cls in (
+        ".remediation-tiles",
+        ".remediation-tiles .tile.ok",
+        ".remediation-tiles .tile.bad",
+        ".remediation-tiles .tile.warn",
+        ".finding-strip",
+        ".finding-row",
+        ".status-pill",
+        ".status-pill.fixed",
+        ".status-pill.open",
+        ".status-pill.escalated",
+    ):
+        assert cls in css, f"classe manquante dans style.css: {cls}"
+
+
 def test_no_absolute_paths_in_output(tmp_path):
     """Garde-fou : les pages générées ne doivent JAMAIS contenir de chemin absolu de
     la machine de build (pas de /projects/..., /home/..., etc.). Seulement des liens
