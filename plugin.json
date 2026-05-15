@@ -1,6 +1,6 @@
 {
   "name": "redteam",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "Setup red-team semi-autonome : skills de pipeline, slash commands d'engagement, hook PreToolUse de gating par scope avec audit trail JSONL hash-chaîné.",
   "hooks": {
     "PreToolUse": [

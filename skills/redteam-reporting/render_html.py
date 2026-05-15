@@ -176,8 +176,101 @@ nav.top a { margin-right: 1em; }
 .client-card a { font-weight: 600; }
 .client-card .meta { color: var(--muted); font-size: 0.88em; }
 
-@media (max-width: 720px) {
-  .summary-cards { grid-template-columns: repeat(2, 1fr); }
+/* Remediation status tiles (3-up exec-scan, pour rapports de re-vérification) */
+.remediation-tiles {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.9em;
+  margin: 1.5em 0 2em 0;
+}
+.remediation-tiles .tile {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.1em 1.2em;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.95em;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+.remediation-tiles .icon-tile {
+  width: 44px; height: 44px;
+  border-radius: 10px;
+  border: 2px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.4em; font-weight: 700;
+  flex-shrink: 0;
+}
+.remediation-tiles .tile .meta { flex: 1; }
+.remediation-tiles .tile .label {
+  font-size: 0.72em; text-transform: uppercase;
+  letter-spacing: 0.06em; color: var(--muted); margin: 0;
+}
+.remediation-tiles .tile .value {
+  font-size: 1.9em; font-weight: 800;
+  letter-spacing: -0.02em; line-height: 1.05;
+  margin: 0.1em 0 0.05em 0;
+}
+.remediation-tiles .tile .sub {
+  font-size: 0.85em; color: var(--muted); margin: 0;
+}
+.remediation-tiles .tile.ok   .icon-tile { border-color: #10b981; color: #10b981; background: #ecfdf5; }
+.remediation-tiles .tile.bad  .icon-tile { border-color: #dc2626; color: #dc2626; background: #fef2f2; }
+.remediation-tiles .tile.warn .icon-tile { border-color: #d97706; color: #d97706; background: #fffbeb; }
+
+/* Finding-strip — diff visuel par finding (before → after) */
+.finding-strip {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+  margin: 1em 0 2em 0;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fff;
+}
+.finding-row {
+  display: grid;
+  grid-template-columns: 70px 1fr 130px 36px 130px 110px;
+  align-items: center;
+  gap: 1em;
+  padding: 0.9em 1.1em;
+  border-top: 1px solid var(--border);
+}
+.finding-row:first-child { border-top: 0; }
+.finding-row .fid {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 0.85em; color: var(--muted); font-weight: 600;
+}
+.finding-row .ftitle { font-size: 0.95em; line-height: 1.35; }
+.finding-row .ftitle a { color: var(--text); }
+.finding-row .ftitle a:hover { color: var(--accent); }
+.finding-row .sev-cell { display: flex; flex-direction: column; align-items: flex-start; gap: 0.2em; }
+.finding-row .sev-cell .cvss { font-size: 0.78em; color: var(--muted); }
+.finding-row .arrow { color: var(--muted); font-size: 1.4em; text-align: center; }
+
+/* Status pills (fixed / open / escalated) — utilisables aussi hors finding-strip */
+.status-pill {
+  display: inline-block;
+  padding: 0.32em 0.75em;
+  border-radius: 999px;
+  font-size: 0.78em; font-weight: 700;
+  letter-spacing: 0.04em; text-transform: uppercase;
+  white-space: nowrap;
+}
+.status-pill.fixed     { background: #ecfdf5; color: #047857; border: 1px solid #6ee7b7; }
+.status-pill.open      { background: #fef2f2; color: #b91c1c; border: 1px solid #fca5a5; }
+.status-pill.escalated { background: #fef3c7; color: #b45309; border: 1px solid #fbbf24; }
+
+@media (max-width: 760px) {
+  .summary-cards     { grid-template-columns: repeat(2, 1fr); }
+  .remediation-tiles { grid-template-columns: 1fr; }
+  .finding-row {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.4em 1em;
+  }
+  .finding-row .fid, .finding-row .ftitle { grid-column: 1 / -1; }
+  .finding-row .arrow { display: none; }
 }
 
 @media print {
@@ -185,7 +278,7 @@ nav.top a { margin-right: 1em; }
   nav.top, .findings-toc { display: none; }
   pre { background: #f4f4f4; color: #222; border: 1px solid #ddd; }
   a { color: #222; text-decoration: none; }
-  .summary-cards .card { box-shadow: none; }
+  .summary-cards .card, .remediation-tiles .tile, .finding-strip { box-shadow: none; }
   h2, h3 { page-break-after: avoid; }
   pre, table { page-break-inside: avoid; }
 }
