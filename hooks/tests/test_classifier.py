@@ -50,3 +50,18 @@ def test_high_thread_count_promotes_to_intrusive():
 def test_low_thread_count_stays_active_light():
     inv = ToolInvocation("ffuf", ["https://a.com"], ["-t", "10"])
     assert classify(inv) is Category.ACTIVE_LIGHT
+
+
+def test_naabu_default_active_light():
+    inv = ToolInvocation("naabu", ["scan.acme.com"], ["-host", "-p", "1-1000"])
+    assert classify(inv) is Category.ACTIVE_LIGHT
+
+
+def test_naabu_high_concurrency_intrusive():
+    inv = ToolInvocation("naabu", ["scan.acme.com"], ["-c", "50"])
+    assert classify(inv) is Category.INTRUSIVE
+
+
+def test_rpcinfo_active_light():
+    inv = ToolInvocation("rpcinfo", ["portmap.acme.com"], ["-p"])
+    assert classify(inv) is Category.ACTIVE_LIGHT

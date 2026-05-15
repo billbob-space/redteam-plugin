@@ -61,3 +61,24 @@ def test_target_list_file_is_marker():
 def test_threads_flag_preserved():
     invs = parse_command("ffuf -u https://a.com/FUZZ -t 50 -w w.txt")
     assert "-t" in invs[0].flags
+
+
+def test_naabu_host_flag():
+    invs = parse_command("naabu -host scan.acme-corp.com -p 1-1000")
+    assert len(invs) == 1
+    assert invs[0].tool == "naabu"
+    assert invs[0].targets == ["scan.acme-corp.com"]
+
+
+def test_naabu_list_flag():
+    invs = parse_command("naabu -list hosts.txt -p 80,443")
+    assert len(invs) == 1
+    assert invs[0].tool == "naabu"
+    assert invs[0].targets == ["@file:hosts.txt"]
+
+
+def test_rpcinfo_positional_host():
+    invs = parse_command("rpcinfo -p portmap.acme-corp.com")
+    assert len(invs) == 1
+    assert invs[0].tool == "rpcinfo"
+    assert "portmap.acme-corp.com" in invs[0].targets

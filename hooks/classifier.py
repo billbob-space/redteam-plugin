@@ -13,7 +13,7 @@ class Category(Enum):
 
 
 PASSIVE_TOOLS = {"subfinder", "assetfinder", "dnsx", "tlsx", "gau", "waybackurls"}
-ACTIVE_LIGHT_TOOLS = {"katana", "feroxbuster", "ffuf"}
+ACTIVE_LIGHT_TOOLS = {"katana", "feroxbuster", "ffuf", "naabu", "rpcinfo"}
 INTRUSIVE_TOOLS = {"sqlmap", "commix", "dalfox", "arjun"}
 
 ACTIVE_FLAGS_FOR_PASSIVE = {
