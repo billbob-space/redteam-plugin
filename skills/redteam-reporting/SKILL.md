@@ -84,6 +84,38 @@ Le template laisse 4 sections `_(à compléter)_` :
 
 Ne pas envoyer le rapport au client sans avoir comblé ces sections.
 
+## Rapport de re-vérification post-remédiation
+
+Pour un rapport qui suit-up un audit précédent (vérification que les findings ont été corrigés), ajouter une clé `remediation:` au frontmatter — `render_html.py` injecte automatiquement deux blocs visuels après le `<h1>` : (1) un trio de tiles `corrigés / ouverts / escaladés`, (2) une finding-strip avec sévérité avant→après et status pill par finding.
+
+```yaml
+---
+type: re-vérification post-remédiation
+date: 2026-05-15
+counts:
+  critical: 2
+  high: 1
+remediation:
+  - id: F-01                   # identifiant court affiché en monospace
+    title: 7 certs TLS expirants
+    anchor: high-finding-01-...   # optionnel : ancre intra-document
+    status: fixed                  # fixed | open | escalated
+    before: { severity: high, cvss: "n/a" }
+    after:  { severity: info, cvss: "364 j restants" }
+  - id: F-11
+    title: Squid 5.9 (open proxy CONFIRMÉ)
+    status: escalated
+    before: { severity: high,     cvss: 7.4 }
+    after:  { severity: critical, cvss: "9.1 ↑" }
+---
+```
+
+Règles :
+- `status` accepte uniquement `fixed | open | escalated` (autres valeurs : la pill est rendue mais ne compte dans aucun tile).
+- L'ordre des entrées est préservé dans la strip (l'auteur choisit l'ordre narratif).
+- `anchor` optionnel : si fourni, le titre devient un `<a href="#anchor">`. Les ancres markdown sont générées par le plugin `toc` de `python-markdown` (slug en minuscules, ponctuation → tiret).
+- Sévérités acceptées dans `before`/`after` : enum `SEVERITY_ORDER` (critical/high/medium/low/info). Valeur inconnue → `info`.
+
 ## Force-regen des INDEX sans rapport
 
 ```bash
